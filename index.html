@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contrast Grid</title>
+<style id="app-styles">
+  :root {
+    --gray-50: #fafafa;
+    --gray-100: #f2f2f2;
+    --gray-200: #e5e5e5;
+    --gray-300: #d4d4d4;
+    --gray-400: #a3a3a3;
+    --gray-500: #737373;
+    --gray-600: #525252;
+    --gray-700: #404040;
+    --gray-800: #262626;
+    --gray-900: #171717;
+    --accent: #2f6fed;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 32px 32px 64px;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    font-family: var(--font-sans);
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    margin: 0 0 32px;
+    color: var(--gray-500);
+    font-size: 14px;
+  }
+
+  .panel {
+    background: #ffffff;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  #colorInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+    font: 14px/1.4 var(--font-mono);
+    color: var(--gray-900);
+    background: var(--gray-50);
+    transition: border-color 150ms ease-out;
+  }
+
+  #colorInput:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #ffffff;
+  }
+
+  button {
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background 150ms ease-out, border-color 150ms ease-out, opacity 150ms ease-out;
+  }
+
+  #addColorBtn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: var(--gray-900);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  #addColorBtn:hover { background: var(--gray-700); }
+
+  .input-error {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--accent);
+    display: none;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 4px 4px;
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+    background: var(--gray-50);
+  }
+
+  .chip-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+
+  .chip-label {
+    font: 12px/1 var(--font-mono);
+    color: var(--gray-700);
+  }
+
+  .chip-remove {
+    border: none;
+    background: none;
+    color: var(--gray-400);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 2px;
+    border-radius: 3px;
+  }
+
+  .chip-remove:hover { color: var(--accent); background: var(--gray-100); }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .toggle input {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+  }
+
+  #exportBtn {
+    padding: 8px 16px;
+    border: 1px solid var(--gray-300);
+    border-radius: 4px;
+    background: #ffffff;
+    color: var(--gray-900);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  #exportBtn:hover:not(:disabled) { border-color: var(--gray-900); }
+  #exportBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-100);
+    font: 11px/1 var(--font-mono);
+    color: var(--gray-500);
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 20px;
+    border-radius: 4px;
+    background: var(--gray-900);
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .legend-chip--aa { opacity: 0.75; }
+  .legend-chip--aa-large { opacity: 0.5; }
+  .legend-chip--fail { background: var(--accent); opacity: 1; }
+
+  .matrix-empty {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 14px;
+  }
+
+  .matrix-wrap {
+    overflow: auto;
+    max-height: 80vh;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .matrix-grid {
+    display: grid;
+    gap: 4px;
+    background: var(--gray-200);
+    padding: 4px;
+    width: max-content;
+  }
+
+  .corner, .col-header, .row-header, .cell {
+    border-radius: 4px;
+  }
+
+  .corner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    background: var(--gray-50);
+    height: 88px;
+    padding: 8px 12px;
+    position: relative;
+  }
+
+  .corner-label {
+    position: absolute;
+    font: 9px/1 var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--gray-400);
+  }
+
+  .corner-label--col { top: 8px; right: 10px; }
+  .corner-label--row { bottom: 8px; left: 12px; }
+
+  .col-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    width: 88px;
+    height: 88px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+  }
+
+  .header-label {
+    font: 10px/1.2 var(--font-mono);
+    background: rgba(255,255,255,0.0);
+  }
+
+  .row-header {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--gray-50);
+    width: 140px;
+    height: 88px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0 12px;
+    gap: 4px;
+  }
+
+  .row-sample {
+    font: 600 16px/1 var(--font-sans);
+  }
+
+  .row-header .header-label {
+    color: var(--gray-500);
+  }
+
+  .cell {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 600 24px/1 var(--font-sans);
+    transition: opacity 180ms ease-out, filter 180ms ease-out;
+  }
+
+  .cell-info {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font: 600 10px/1.4 var(--font-mono);
+  }
+
+  .cell-ratio {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cell-badge {
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 9px;
+  }
+
+  .cell-badge--aa { opacity: 0.75; }
+  .cell-badge--aa-large { opacity: 0.5; }
+  .cell-badge--fail { color: var(--accent); opacity: 1; }
+
+  .cell--neutral {
+    background: repeating-linear-gradient(135deg, var(--gray-100) 0 6px, var(--gray-200) 6px 12px);
+    color: var(--gray-400);
+    font-size: 18px;
+  }
+
+  .cell--neutral::after {
+    content: "\2013";
+  }
+
+  .matrix-grid.hide-failing .cell:not(.cell--neutral):not(.cell--pass-aa) {
+    opacity: 0.1;
+    filter: grayscale(1);
+  }
+
+  .exporting .corner,
+  .exporting .col-header,
+  .exporting .row-header {
+    position: static;
+  }
+</style>
+</head>
+<body>
+
+  <h1>Contrast Grid</h1>
+  <p class="subtitle">WCAG-Kontrastverhältnisse für alle Farbkombinationen auf einen Blick.</p>
+
+  <div class="panel">
+    <form id="addColorForm" class="input-row">
+      <input type="text" id="colorInput" placeholder="#2f6fed oder mehrere, kommagetrennt" autocomplete="off">
+      <button type="submit" id="addColorBtn">Hinzufügen</button>
+    </form>
+    <div class="input-error" id="inputError"></div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="panel">
+    <div class="controls-row">
+      <label class="toggle">
+        <input type="checkbox" id="filterToggle">
+        Nur AA-bestehende Kombis anzeigen
+      </label>
+      <button id="exportBtn" disabled>Als PNG exportieren</button>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-chip">AAA</span> ≥ 7.0</div>
+      <div class="legend-item"><span class="legend-chip legend-chip--aa">AA</span> ≥ 4.5</div>
+      <div class="legend-item"><span class="legend-chip legend-chip--aa-large">AA Large</span> ≥ 3.0</div>
+      <div class="legend-item"><span class="legend-chip legend-chip--fail">Fail</span> &lt; 3.0</div>
+    </div>
+  </div>
+
+  <div class="matrix-empty" id="matrixEmpty">Füge Farben hinzu, um die Matrix zu sehen.</div>
+  <div class="matrix-wrap" id="matrixWrap" style="display:none;">
+    <div class="matrix-grid" id="matrixGrid"></div>
+  </div>
+
+<script>
+  // ---------- State ----------
+
+  let colors = []; // { hex, r, g, b }
+
+  // ---------- Color parsing ----------
+
+  function normalizeHex(raw) {
+    let s = raw.trim().replace(/^#/, '');
+    if (/^[0-9a-fA-F]{3}$/.test(s)) {
+      s = s.split('').map(c => c + c).join('');
+    }
+    if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+    return '#' + s.toUpperCase();
+  }
+
+  function hexToRgb(hex) {
+    const s = hex.replace('#', '');
+    return {
+      r: parseInt(s.slice(0, 2), 16),
+      g: parseInt(s.slice(2, 4), 16),
+      b: parseInt(s.slice(4, 6), 16)
+    };
+  }
+
+  // ---------- Contrast / WCAG (ported from design-analyzer) ----------
+
+  function srgbToLinear(c) {
+    c /= 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+
+  function relativeLuminance(r, g, b) {
+    const rl = srgbToLinear(r), gl = srgbToLinear(g), bl = srgbToLinear(b);
+    return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+  }
+
+  function contrastRatio(rgb1, rgb2) {
+    const l1 = relativeLuminance(...rgb1);
+    const l2 = relativeLuminance(...rgb2);
+    const lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function wcagRating(ratio) {
+    if (ratio >= 7) return { label: 'AAA', cls: 'aaa' };
+    if (ratio >= 4.5) return { label: 'AA', cls: 'aa' };
+    if (ratio >= 3) return { label: 'AA Large', cls: 'aa-large' };
+    return { label: 'Fail', cls: 'fail' };
+  }
+
+  function bestTextColor(rgb) {
+    const white = contrastRatio([rgb.r, rgb.g, rgb.b], [255, 255, 255]);
+    const black = contrastRatio([rgb.r, rgb.g, rgb.b], [0, 0, 0]);
+    return white >= black ? '#ffffff' : '#000000';
+  }
+
+  function overlayStyle(bg) {
+    const rgb = [bg.r, bg.g, bg.b];
+    const bgIsLight = contrastRatio(rgb, [0, 0, 0]) >= contrastRatio(rgb, [255, 255, 255]);
+    return bgIsLight
+      ? { bg: 'rgba(20,20,20,0.82)', fg: '#ffffff' }
+      : { bg: 'rgba(255,255,255,0.88)', fg: '#141414' };
+  }
+
+  // ---------- Input handling ----------
+
+  const form = document.getElementById('addColorForm');
+  const input = document.getElementById('colorInput');
+  const errorEl = document.getElementById('inputError');
+  const chipsEl = document.getElementById('chips');
+  const filterToggle = document.getElementById('filterToggle');
+  const exportBtn = document.getElementById('exportBtn');
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.style.display = 'block';
+  }
+
+  function clearError() {
+    errorEl.style.display = 'none';
+  }
+
+  function parseAndAdd(raw) {
+    const tokens = raw.split(',').map(t => t.trim()).filter(Boolean);
+    const invalid = [];
+    const added = [];
+
+    for (const t of tokens) {
+      const hex = normalizeHex(t);
+      if (!hex) { invalid.push(t); continue; }
+      if (colors.some(c => c.hex === hex) || added.includes(hex)) continue;
+      added.push(hex);
+    }
+
+    for (const hex of added) {
+      colors.push({ hex, ...hexToRgb(hex) });
+    }
+
+    if (invalid.length) {
+      showError(`Ungültig: ${invalid.join(', ')}`);
+    } else {
+      clearError();
+    }
+
+    if (added.length) renderAll();
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!input.value.trim()) return;
+    parseAndAdd(input.value);
+    input.value = '';
+    input.focus();
+  });
+
+  input.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (text && text.includes(',')) {
+      e.preventDefault();
+      parseAndAdd(text);
+      input.value = '';
+    }
+  });
+
+  filterToggle.addEventListener('change', () => {
+    document.getElementById('matrixGrid').classList.toggle('hide-failing', filterToggle.checked);
+  });
+
+  exportBtn.addEventListener('click', exportPNG);
+
+  // ---------- Rendering ----------
+
+  function renderChips() {
+    chipsEl.innerHTML = '';
+    for (const c of colors) {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+
+      const sw = document.createElement('span');
+      sw.className = 'chip-swatch';
+      sw.style.background = c.hex;
+
+      const label = document.createElement('span');
+      label.className = 'chip-label';
+      label.textContent = c.hex;
+
+      const rm = document.createElement('button');
+      rm.className = 'chip-remove';
+      rm.type = 'button';
+      rm.setAttribute('aria-label', `${c.hex} entfernen`);
+      rm.textContent = '×';
+      rm.addEventListener('click', () => {
+        colors = colors.filter(x => x.hex !== c.hex);
+        renderAll();
+      });
+
+      chip.append(sw, label, rm);
+      chipsEl.appendChild(chip);
+    }
+  }
+
+  function renderMatrix() {
+    const grid = document.getElementById('matrixGrid');
+    const empty = document.getElementById('matrixEmpty');
+    const wrap = document.getElementById('matrixWrap');
+    grid.innerHTML = '';
+
+    if (colors.length === 0) {
+      wrap.style.display = 'none';
+      empty.style.display = 'block';
+      exportBtn.disabled = true;
+      return;
+    }
+
+    wrap.style.display = 'block';
+    empty.style.display = 'none';
+    exportBtn.disabled = false;
+
+    const n = colors.length;
+    grid.style.gridTemplateColumns = `140px repeat(${n}, 88px)`;
+
+    const corner = document.createElement('div');
+    corner.className = 'corner';
+    const colLabel = document.createElement('span');
+    colLabel.className = 'corner-label corner-label--col';
+    colLabel.textContent = 'Hintergrund →';
+    const rowLabel = document.createElement('span');
+    rowLabel.className = 'corner-label corner-label--row';
+    rowLabel.textContent = '↓ Text';
+    corner.append(colLabel, rowLabel);
+    grid.appendChild(corner);
+
+    for (const col of colors) {
+      const h = document.createElement('div');
+      h.className = 'col-header';
+      h.style.background = col.hex;
+      h.style.color = bestTextColor(col);
+      const label = document.createElement('span');
+      label.className = 'header-label';
+      label.textContent = col.hex;
+      h.appendChild(label);
+      grid.appendChild(h);
+    }
+
+    for (const row of colors) {
+      const rh = document.createElement('div');
+      rh.className = 'row-header';
+      const sample = document.createElement('span');
+      sample.className = 'row-sample';
+      sample.style.color = row.hex;
+      sample.textContent = 'Aa';
+      const label = document.createElement('span');
+      label.className = 'header-label';
+      label.textContent = row.hex;
+      rh.append(sample, label);
+      grid.appendChild(rh);
+
+      for (const col of colors) {
+        if (row.hex === col.hex) {
+          const neutral = document.createElement('div');
+          neutral.className = 'cell cell--neutral';
+          grid.appendChild(neutral);
+          continue;
+        }
+
+        const ratio = contrastRatio([row.r, row.g, row.b], [col.r, col.g, col.b]);
+        const rating = wcagRating(ratio);
+
+        const cell = document.createElement('div');
+        cell.className = `cell cell--${rating.cls}`;
+        if (ratio >= 4.5) cell.classList.add('cell--pass-aa');
+        cell.style.background = col.hex;
+        cell.style.color = row.hex;
+
+        const word = document.createElement('span');
+        word.className = 'cell-word';
+        word.textContent = 'Aa';
+
+        const overlay = overlayStyle(col);
+        const info = document.createElement('span');
+        info.className = 'cell-info';
+        info.style.background = overlay.bg;
+        info.style.color = overlay.fg;
+
+        const ratioEl = document.createElement('span');
+        ratioEl.className = 'cell-ratio';
+        ratioEl.textContent = ratio.toFixed(1);
+
+        const badge = document.createElement('span');
+        badge.className = `cell-badge cell-badge--${rating.cls}`;
+        badge.textContent = rating.label;
+
+        info.append(ratioEl, badge);
+        cell.append(word, info);
+        grid.appendChild(cell);
+      }
+    }
+
+    grid.classList.toggle('hide-failing', filterToggle.checked);
+  }
+
+  function renderAll() {
+    renderChips();
+    renderMatrix();
+  }
+
+  // ---------- PNG export ----------
+
+  async function exportPNG() {
+    const grid = document.getElementById('matrixGrid');
+    if (!grid || colors.length === 0) return;
+
+    const width = grid.scrollWidth;
+    const height = grid.scrollHeight;
+
+    const clone = grid.cloneNode(true);
+    clone.classList.add('exporting');
+
+    const styleText = document.getElementById('app-styles').textContent;
+    const scopedStyle = styleText.replace(/:root/g, '.export-root');
+
+    const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">`
+      + `<foreignObject width="100%" height="100%">`
+      + `<div xmlns="http://www.w3.org/1999/xhtml" class="export-root" style="width:${width}px;height:${height}px;background:#ffffff;">`
+      + `<style>${scopedStyle}</style>`
+      + clone.outerHTML
+      + `</div></foreignObject></svg>`;
+
+    const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    try {
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = url;
+      });
+
+      const scale = 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0);
+
+      const pngUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = 'contrast-grid.png';
+      a.click();
+    } catch (err) {
+      alert('Export fehlgeschlagen. Der Browser unterstützt den SVG-Export vermutlich nicht vollständig.');
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  renderAll();
+</script>
+</body>
+</html>
